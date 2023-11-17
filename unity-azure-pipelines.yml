@@ -11,9 +11,9 @@ pool:
 
 
 steps:
-- script: |
-    echo "Current Directory: $(System.DefaultWorkingDirectory)"
-  displayName: 'Print Current Directory'
+#- script: |
+#    echo "Current Directory: $(System.DefaultWorkingDirectory)"
+#  displayName: 'Print Current Directory'
 
 - task: UseDotNet@2
   inputs:
@@ -22,7 +22,7 @@ steps:
   displayName: 'Install .NET SDK'
 
 - script: |
-    "C:\BuildAgent\AzureDevOpsAgent\agent\tools\Unity 2022.3.11f1\Editor\Unity.exe" -batchmode -nographics -projectPath "C:\Users\frede\Desktop\8.StoreSystemerEksamen\BBOnline\BubbleBlastOnline\Assets\Scripts" -executeMethod BuildTheGame.Build
+    "C:\BuildAgent\AzureDevOpsAgent\agent\tools\Unity 2022.3.11f1\Editor\Unity.exe" -batchmode -nographics -projectPath "$(System.DefaultWorkingDirectory)\BubbleBlastOnline" -executeMethod BuildTheGame.Build
   displayName: 'Unity Build'
 
 

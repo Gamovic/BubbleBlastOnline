@@ -11,6 +11,12 @@ pool:
 
 
 steps:
+- script: |
+    echo "Current Directory: $(System.DefaultWorkingDirectory)"
+    dir "$(System.DefaultWorkingDirectory)"
+    dir "$(Agent.TempDirectory)"
+  displayName: 'Diagnostic Output'
+
 #- script: |
 #    echo "Current Directory: $(System.DefaultWorkingDirectory)"
 #  displayName: 'Print Current Directory'

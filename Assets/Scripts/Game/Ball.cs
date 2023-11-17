@@ -6,6 +6,8 @@ public class Ball : MonoBehaviour
 {
     public Vector2 startForce;
 
+    public GameObject nextBall;
+
     public Rigidbody2D rigidb;
 
     void Start()
@@ -13,9 +15,14 @@ public class Ball : MonoBehaviour
         rigidb.AddForce(startForce, ForceMode2D.Impulse);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Split()
     {
-        
+        if (nextBall != null)
+        {
+            /*GameObject ball01 = */Instantiate(nextBall, rigidb.position + Vector2.right / 4f, Quaternion.identity);
+            Instantiate(nextBall, rigidb.position + Vector2.left / 4f, Quaternion.identity);
+        }
+
+        Destroy(gameObject);
     }
 }

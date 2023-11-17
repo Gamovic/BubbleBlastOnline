@@ -12,10 +12,15 @@ pool:
 
 steps:
 - script: |
-    echo "Current Directory: $(System.DefaultWorkingDirectory)"
-    dir "$(System.DefaultWorkingDirectory)"
-    dir "$(Agent.TempDirectory)"
-  displayName: 'Diagnostic Output'
+    echo "Checking for references to the mysterious script..."
+    findstr /S /I /M /C:"9bd37ec4-af65-4b2d-a336-8da9c3d59271.cmd" "$(System.DefaultWorkingDirectory)\*.yml"
+  displayName: 'Search for Script References'
+
+#- script: |
+#    echo "Current Directory: $(System.DefaultWorkingDirectory)"
+#    dir "$(System.DefaultWorkingDirectory)"
+#    dir "$(Agent.TempDirectory)"
+#  displayName: 'Diagnostic Output'
 
 #- script: |
 #    echo "Current Directory: $(System.DefaultWorkingDirectory)"

@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 228085872}
   - component: {fileID: 228085871}
   - component: {fileID: 228085870}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: box
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1145,7 +1145,7 @@ GameObject:
   - component: {fileID: 875011046}
   - component: {fileID: 875011045}
   - component: {fileID: 875011047}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1487,6 +1487,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ball
       objectReference: {fileID: 0}
+    - target: {fileID: 8226505832226690080, guid: c037815c84e9ebc4c872ae154b460331, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 8253081599467763464, guid: c037815c84e9ebc4c872ae154b460331, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2
@@ -1796,7 +1800,7 @@ GameObject:
   - component: {fileID: 1389913709}
   - component: {fileID: 1389913708}
   - component: {fileID: 1389913707}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: box (3)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2038,7 +2042,7 @@ GameObject:
   - component: {fileID: 1489287760}
   - component: {fileID: 1489287759}
   - component: {fileID: 1489287758}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: box (2)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2603,7 +2607,7 @@ GameObject:
   - component: {fileID: 1819213815}
   - component: {fileID: 1819213814}
   - component: {fileID: 1819213813}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: box (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}

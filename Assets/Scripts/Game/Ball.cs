@@ -19,8 +19,12 @@ public class Ball : MonoBehaviour
     {
         if (nextBall != null)
         {
-            /*GameObject ball01 = */Instantiate(nextBall, rigidb.position + Vector2.right / 4f, Quaternion.identity);
-            Instantiate(nextBall, rigidb.position + Vector2.left / 4f, Quaternion.identity);
+            GameObject ball1 = Instantiate(nextBall, rigidb.position + Vector2.right / 4f, Quaternion.identity);
+            GameObject ball2 = Instantiate(nextBall, rigidb.position + Vector2.left / 4f, Quaternion.identity);
+
+            ball1.GetComponent<Ball>().startForce = new Vector2(2f, 5f);
+            ball2.GetComponent<Ball>().startForce = new Vector2(-2f, 5f);
+
         }
 
         Destroy(gameObject);

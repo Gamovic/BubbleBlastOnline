@@ -11,6 +11,10 @@ pool:
 
 
 steps:
+- script: |
+    echo "Current Directory: $(System.DefaultWorkingDirectory)"
+  displayName: 'Print Current Directory'
+
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'

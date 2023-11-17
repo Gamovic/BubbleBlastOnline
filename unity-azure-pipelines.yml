@@ -18,7 +18,7 @@ steps:
   displayName: 'Install .NET SDK'
 
 - script: |
-    "C:\BuildAgent\AzureDevOpsAgent\agent\tools\Unity 2022.3.11f1\Editor\Unity.exe" -batchmode -nographics -projectPath "C:\Users\frede\Desktop\8.StoreSystemerEksamen\BBOnline\BubbleBlastOnline" -executeMethod BuildGame.Build
+    "C:\BuildAgent\AzureDevOpsAgent\agent\tools\Unity 2022.3.11f1\Editor\Unity.exe" -batchmode -nographics -projectPath "C:\Users\frede\Desktop\8.StoreSystemerEksamen\BBOnline\BubbleBlastOnline" -executeMethod BuildTheGame.Build
   displayName: 'Unity Build'
 
 

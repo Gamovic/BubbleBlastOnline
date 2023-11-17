@@ -9,11 +9,14 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '2.1'
+  displayName: 'Install .NET SDK'
+
+- script: "'C:/BuildAgent/AzureDevOpsAgent/agent/tools/Unity 2022.3.11f1/Editor/Unity.exe' -batchmode -nographics -projectPath 'C:/Users/frede/Desktop/8.StoreSystemerEksamen/BBOnline/BubbleBlastOnline' -executeMethod BuildGame.Build"
+  displayName: 'Unity'
+

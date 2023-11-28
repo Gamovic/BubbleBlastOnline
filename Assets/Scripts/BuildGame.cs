@@ -4,7 +4,7 @@ using System.Linq;
 
 public class BuildGame
 {
-    [MenuItem("Build/BuildTheGame")]
+    /*[MenuItem("Build/BuildTheGame")]
     public static void BuildTheGame()
     {
         // Get the first scene
@@ -23,5 +23,5 @@ public class BuildGame
         BuildPipeline.BuildPlayer(buildOptions);
 
         Debug.Log("Build completed!");
-    }
+    }*/
 }

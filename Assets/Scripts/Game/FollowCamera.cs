@@ -1,19 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
-public class FollowCamera : MonoBehaviour
+public class FollowCamera : NetworkBehaviour
 {
-    public Transform player;
-    public float smoothSpeed = 0.125f;
-    public float offsetX;
+    //[SerializeField]
+    private Transform player;
+    [SerializeField]
+    private float smoothSpeed = 0.125f;
+    [SerializeField]
+    private float offsetX;
 
-    void LateUpdate()
+    public void SetPlayer(Transform playerTransform)
     {
-        float desiredX = player.position.x + offsetX;
-        Vector3 desiredPos = new Vector3(desiredX, transform.position.y, transform.position.z);
-        Vector3 smoothedPos = Vector3.Lerp(transform.position, desiredPos, smoothSpeed);
+        player = playerTransform;
+    }
 
-        transform.position = smoothedPos;
+    void FixedUpdate()
+    {
+        if (player != null)
+        {
+            float desiredX = player.position.x + offsetX;
+            Vector3 desiredPos = new Vector3(desiredX, transform.position.y, transform.position.z);
+            Vector3 smoothedPos = Vector3.Lerp(transform.position, desiredPos, smoothSpeed);
+
+            transform.position = smoothedPos;
+        }
     }
 }

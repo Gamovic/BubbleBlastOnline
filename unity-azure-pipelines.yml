@@ -7,13 +7,33 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
+
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- script: |
+    echo "Checking for references to the mysterious script..."
+    findstr /S /I /M /C:"9bd37ec4-af65-4b2d-a336-8da9c3d59271.cmd" "$(System.DefaultWorkingDirectory)\*.yml"
+  displayName: 'Search for Script References'
+
+#- script: |
+#    echo "Current Directory: $(System.DefaultWorkingDirectory)"
+#    dir "$(System.DefaultWorkingDirectory)"
+#    dir "$(Agent.TempDirectory)"
+#  displayName: 'Diagnostic Output'
+
+#- script: |
+#    echo "Current Directory: $(System.DefaultWorkingDirectory)"
+#  displayName: 'Print Current Directory'
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '2.1.x'
+  displayName: 'Install .NET SDK'
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    "C:\BuildAgent\AzureDevOpsAgent\agent\tools\Unity 2022.3.11f1\Editor\Unity.exe" -batchmode -nographics -projectPath "$(System.DefaultWorkingDirectory)\BubbleBlastOnline" -executeMethod BuildTheGame.Build
+  displayName: 'Unity Build'
+
+

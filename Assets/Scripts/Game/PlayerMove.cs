@@ -8,11 +8,7 @@ namespace Game
 {
     public class PlayerMove : NetworkBehaviour
     {
-        [SerializeField]
-        private Camera playerCamera;
-
-        //private GameObject cameraPrefab;
-        //private Camera playerCamera;
+        // Camera spawning now handled by LocalCameraManager
 
         [SerializeField]
         private float speed;
@@ -28,6 +24,9 @@ namespace Game
         private bool useSimulatedInput = false;
 
         private Vector2 spawnPos = new Vector2(0, 0);
+
+        // Network variable for synchronized position
+        public NetworkVariable<Vector2> NetworkPosition = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
         private NetworkVariable<MyCustomData> randNumber = new NetworkVariable<MyCustomData>(
             new MyCustomData
@@ -52,18 +51,19 @@ namespace Game
 
         public override void OnNetworkSpawn()
         {
+            // Subscribe to position changes
+            NetworkPosition.OnValueChanged += OnPositionChanged;
+            
             if (IsServer && IsLocalPlayer)
             {
-                // Move the player and spawn the camera on the host
+                // Move the player (camera spawning handled by LocalCameraManager)
                 //Move();
-                SpawnCamera();
             }
             else if (IsLocalPlayer)
             {
-                // Request the server to move the player and spawn the camera
-                RequestMoveAndSpawnCameraServerRpc(spawnPos);
+                // Request the server to move the player (camera spawning handled by LocalCameraManager)
+                RequestMoveServerRpc(spawnPos);
             }
-
 
             randNumber.OnValueChanged += (MyCustomData previousValue, MyCustomData newValue) =>
             {
@@ -71,50 +71,30 @@ namespace Game
             };
         }
 
+        public override void OnNetworkDespawn()
+        {
+            // Unsubscribe from position changes
+            NetworkPosition.OnValueChanged -= OnPositionChanged;
+            base.OnNetworkDespawn();
+        }
+
+        private void OnPositionChanged(Vector2 previousValue, Vector2 newValue)
+        {
+            // Update position on all clients
+            if (!IsOwner)
+            {
+                transform.position = newValue;
+            }
+        }
+
         [ServerRpc]
-        private void RequestMoveAndSpawnCameraServerRpc(Vector3 spawnPosition)
+        private void RequestMoveServerRpc(Vector3 spawnPosition)
         {
             // Move the player on the server
             Move();
 
-            // Spawn the camera on the server and synchronize it to clients
-            OnSpawnCameraServerRpc(spawnPosition);
-        }
-
-        [ServerRpc]
-        private void OnSpawnCameraServerRpc(Vector3 spawnPosition)
-        {
-            // Spawn the camera prefab on the server
-            if (playerCamera == null)
-            {
-                GameObject cameraObj = Instantiate(playerCamera.gameObject, spawnPosition, Quaternion.identity);
-                NetworkObject networkObject = cameraObj.GetComponent<NetworkObject>();
-                networkObject.Spawn();
-
-                // Set the spawned camera as a child of the player
-                Transform playerTransform = transform;
-                cameraObj.transform.SetParent(playerTransform);
-                cameraObj.transform.localPosition = new Vector3(0f, 0f, -10f);
-
-                // Assign the player to the camera script
-                FollowCamera followCamera = cameraObj.GetComponent<FollowCamera>();
-                followCamera.SetPlayer(playerTransform);
-
-                // Assign the camera to the playerCamera variable
-                playerCamera = cameraObj.GetComponent<Camera>();
-            }
-        }
-
-        [ClientRpc]
-        private void OnSpawnCameraClientRpc(Vector3 spawnPosition)
-        {
-
-        }
-
-        private void SpawnCamera()
-        {
-            // Spawn the camera prefab on the host
-            OnSpawnCameraServerRpc(spawnPos);
+            // Camera spawning is now handled by LocalCameraManager
+            // No need to spawn networked cameras anymore
         }
 
         public void Update()
@@ -135,16 +115,14 @@ namespace Game
                 };*/
             }
 
-            if (IsServer && IsLocalPlayer)
+            // Send movement input to server for validation
+            if (IsLocalPlayer)
             {
-                // Move the player and spawn the camera on the host
-                Move();
-                //SpawnCamera();
-            }
-            else if (IsLocalPlayer)
-            {
-                // Request the server to move the player and spawn the camera
-                RequestMoveAndSpawnCameraServerRpc(spawnPos);
+                float horizontalInput = Input.GetAxisRaw("Horizontal");
+                if (horizontalInput != 0f)
+                {
+                    SubmitMovementServerRpc(horizontalInput);
+                }
             }
 
             /*if (useSimulatedInput)
@@ -169,15 +147,36 @@ namespace Game
             }*/
         }
 
+        [ServerRpc]
+        private void SubmitMovementServerRpc(float horizontalInput, ServerRpcParams rpcParams = default)
+        {
+            // Server validates and applies movement
+            if (IsOwner)
+            {
+                float x = transform.position.x + horizontalInput * speed * Time.deltaTime;
+                float clampedPos = Mathf.Clamp(x, minScreenLimitX, maxScreenLimitX);
+                
+                Vector2 newPosition = new Vector2(clampedPos, transform.position.y);
+                
+                // Update position on server
+                transform.position = newPosition;
+                
+                // Update network variable to sync to all clients
+                NetworkPosition.Value = newPosition;
+                
+                Debug.Log($"Server: Player {rpcParams.Receive.SenderClientId} moved to {newPosition}");
+            }
+        }
+
         private void Move()
         {
-            // Use Input for movement during play mode
+            // This method is now only used for local prediction on the client
             horizontalInput = Input.GetAxisRaw("Horizontal");
             float x = transform.position.x + horizontalInput * speed * Time.deltaTime;
 
             float clampedPos = Mathf.Clamp(x, minScreenLimitX, maxScreenLimitX);
 
-            // Update player position
+            // Update player position locally for responsiveness
             transform.position = new Vector2(clampedPos, transform.position.y);
         }
 

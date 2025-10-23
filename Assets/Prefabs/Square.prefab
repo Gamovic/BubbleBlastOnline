@@ -180,8 +180,9 @@ GameObject:
   - component: {fileID: 6615002493319452219}
   - component: {fileID: 3229268050648910179}
   - component: {fileID: 987482184617511528}
+  - component: {fileID: 2385306837621860640}
   - component: {fileID: 6286115087889608771}
-  - component: {fileID: 7671709864178716866}
+  - component: {fileID: 3603497073524921391}
   m_Layer: 6
   m_Name: Square
   m_TagString: Player
@@ -367,6 +368,27 @@ MonoBehaviour:
   minScreenLimitX: -7
   maxScreenLimitX: 7
   speed: 5
+--- !u!114 &2385306837621860640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8482917171480188316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef0f14facf4d17b4da8fccb9c40056e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minRotation: -45
+  maxRotation: 45
+  bulletPrefab: {fileID: 6975784262136075009, guid: d5033b5ca1945f3418c16c43530ab904, type: 3}
+  bulletTransform: {fileID: 7065736298911620866}
+  playerCamera: {fileID: 0}
+  canShoot: 1
+  timeBetweenShot: 0.5
+  syncedRotation:
+    m_InternalValue: 0
 --- !u!50 &6286115087889608771
 Rigidbody2D:
   serializedVersion: 4
@@ -394,7 +416,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &7671709864178716866
+--- !u!114 &3603497073524921391
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -28,14 +28,19 @@ public class BallSpawner : MonoBehaviour
     private void SpawnBallStart()
     {
         NetworkManager.Singleton.OnServerStarted -= SpawnBallStart;
+        Debug.Log("BallSpawner: Server started, initializing ball spawning...");
 
         if (NetworkObjectPool.Singleton != null)
         {
             isSpawning = true;
+            Debug.Log("BallSpawner: NetworkObjectPool found, starting ball spawning");
 
             NetworkObjectPool.Singleton.OnNetworkSpawn();
 
-            for (int i = 0; i < 7; ++i)
+            // Reduced number of balls from 7 to 3-4 for better gameplay
+            int initialBallCount = Random.Range(3, 5);
+            Debug.Log($"BallSpawner: Spawning {initialBallCount} initial balls");
+            for (int i = 0; i < initialBallCount; ++i)
             {
                 SpawnBall();
             }
@@ -46,46 +51,45 @@ public class BallSpawner : MonoBehaviour
         {
             Debug.LogError("NetworkObjectPool.Singleton is null. Ensure that the pool is properly initialized.");
         }
-
-        /*NetworkObjectPool.Singleton.OnNetworkSpawn();
-
-        for (int i = 0; i < 7; ++i)
-        {
-            SpawnBall();
-        }
-
-        StartCoroutine(SpawnOverTime());*/
     }
 
     private void SpawnBall()
     {
-        NetworkObject poolObj = NetworkObjectPool.Singleton.GetNetworkObject(ballPrefab, GetRandomPositionOnMap(), Quaternion.identity);
-        NetworkObject poolObj2 = NetworkObjectPool.Singleton.GetNetworkObject(ballPrefab2, GetRandomPositionOnMap(), Quaternion.identity);
-        NetworkObject poolObj3 = NetworkObjectPool.Singleton.GetNetworkObject(ballPrefab3, GetRandomPositionOnMap(), Quaternion.identity);
-        NetworkObject poolObj4 = NetworkObjectPool.Singleton.GetNetworkObject(ballPrefab4, GetRandomPositionOnMap(), Quaternion.identity);
+        // Randomly choose which ball prefab to spawn
+        GameObject[] ballPrefabs = { ballPrefab, ballPrefab2, ballPrefab3, ballPrefab4 };
+        GameObject selectedPrefab = ballPrefabs[Random.Range(0, ballPrefabs.Length)];
+        
+        Vector3 spawnPosition = GetRandomPositionOnMap();
+        Debug.Log($"BallSpawner: Attempting to spawn ball at {spawnPosition}");
+        
+        NetworkObject poolObj = NetworkObjectPool.Singleton.GetNetworkObject(selectedPrefab, spawnPosition, Quaternion.identity);
 
         if (poolObj != null)
         {
-            poolObj.GetComponent<Ball>().ball = ballPrefab;
+            Debug.Log("BallSpawner: Got ball from pool, setting up...");
+            
+            // Set the next ball reference for splitting
+            Ball ballScript = poolObj.GetComponent<Ball>();
+            if (ballScript != null)
+            {
+                ballScript.nextBall = selectedPrefab;
+            }
 
-            poolObj.Spawn(true);
+            // Only spawn if not already spawned
+            if (!poolObj.IsSpawned)
+            {
+                poolObj.Spawn(true);
+                Debug.Log("BallSpawner: Ball spawned successfully");
+            }
+            else
+            {
+                Debug.Log("BallSpawner: Ball was already spawned");
+            }
         }
-        else if (poolObj2 != null)
+        else
         {
-            poolObj.GetComponent<Ball>().ball2 = ballPrefab;
-            poolObj2.Spawn(true);
+            Debug.LogError("BallSpawner: Failed to get ball from pool");
         }
-        else if (poolObj3 != null)
-        {
-            poolObj.GetComponent<Ball>().ball3 = ballPrefab;
-            poolObj3.Spawn(true);
-        }
-        else if (poolObj4 != null)
-        {
-            poolObj.GetComponent<Ball>().ball4 = ballPrefab;
-            poolObj4.Spawn(true);
-        }
-
     }
 
     private Vector3 GetRandomPositionOnMap()
@@ -97,10 +101,12 @@ public class BallSpawner : MonoBehaviour
     {
         while (NetworkManager.Singleton.ConnectedClients.Count > 0 && isSpawning)
         {
-            yield return new WaitForSeconds(2f);
+            // Increased spawn time from 2f to 5f to reduce ball density
+            yield return new WaitForSeconds(5f);
 
-            //if (NetworkObjectPool.Singleton.GetCurrentPrefabCount(ballPrefab) < MaxPrefabCount)
-                SpawnBall();
+            // Only spawn if we have fewer than 6 balls total
+            // Note: GetCurrentPrefabCount might not be available, so we'll spawn without this check
+            SpawnBall();
         }
     }
 }

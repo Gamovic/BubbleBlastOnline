@@ -6,20 +6,63 @@ public class ParallaxBackground : MonoBehaviour
 {
     private float startPos, length;
     [SerializeField]
-    private float parallaxEffect;
+    private float parallaxEffect = 0.5f;
 
     private Camera cam;
+    private SpriteRenderer spriteRenderer;
 
     private void Start()
     {
+        spriteRenderer = GetComponent<SpriteRenderer>();
         startPos = transform.position.x;
-        length = GetComponent<SpriteRenderer>().bounds.size.x;
+        length = spriteRenderer.bounds.size.x;
 
-        // Get the Camera component from the parent object
+        Debug.Log($"ParallaxBackground started on {gameObject.name}");
+        
+        // Try to find camera in parent first, then by tag, then Camera.main
         cam = GetComponentInParent<Camera>();
         if (cam == null)
         {
-            Debug.LogError("ParallaxBackground script requires a Camera component in the parent object.");
+            GameObject cameraObj = GameObject.FindWithTag("Camera");
+            if (cameraObj != null)
+            {
+                cam = cameraObj.GetComponent<Camera>();
+            }
+        }
+        if (cam == null)
+        {
+            cam = Camera.main;
+        }
+        
+        if (cam == null)
+        {
+            Debug.LogWarning($"ParallaxBackground on {gameObject.name} - Camera not found, will retry...");
+            // Start coroutine to keep looking for camera
+            StartCoroutine(FindCameraCoroutine());
+        }
+        else
+        {
+            Debug.Log($"ParallaxBackground on {gameObject.name} - Camera found: {cam.name}");
+        }
+    }
+
+    private System.Collections.IEnumerator FindCameraCoroutine()
+    {
+        while (cam == null)
+        {
+            // Try to find camera by tag
+            GameObject cameraObj = GameObject.FindWithTag("Camera");
+            if (cameraObj != null)
+            {
+                cam = cameraObj.GetComponent<Camera>();
+                if (cam != null)
+                {
+                    Debug.Log($"ParallaxBackground on {gameObject.name} - Camera found via tag: {cam.name}");
+                    break;
+                }
+            }
+            
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -27,25 +70,69 @@ public class ParallaxBackground : MonoBehaviour
     {
         if (cam != null)
         {
-            ParallaxCamera();
+            UpdateParallaxPosition(cam.transform.position.x);
         }
         else
         {
-            Debug.LogError("Camera reference is not set!");
+            // Try to find camera again if we still don't have one
+            if (cam == null)
+            {
+                GameObject cameraObj = GameObject.FindWithTag("Camera");
+                if (cameraObj != null)
+                {
+                    cam = cameraObj.GetComponent<Camera>();
+                    if (cam != null)
+                    {
+                        Debug.Log($"ParallaxBackground on {gameObject.name} - Camera found in FixedUpdate: {cam.name}");
+                    }
+                }
+            }
         }
     }
 
-    private void ParallaxCamera()
+    private void UpdateParallaxPosition(float cameraXPosition)
     {
-        float distanceFromStart = (cam.transform.position.x * parallaxEffect);
-        float tempDistance = (cam.transform.position.x * (1 - parallaxEffect));
+        float distanceFromStart = (cameraXPosition * parallaxEffect);
+        float tempDistance = (cameraXPosition * (1 - parallaxEffect));
 
-        transform.position = new Vector3(startPos + distanceFromStart, transform.position.y, transform.position.z);
+        Vector3 newPosition = new Vector3(startPos + distanceFromStart, transform.position.y, transform.position.z);
+        transform.position = newPosition;
 
-        if (tempDistance > startPos)
+        // Improved background looping to prevent shaking
+        if (tempDistance > startPos + length)
+        {
             startPos += length;
-        else if (tempDistance < startPos)
+            Debug.Log($"Parallax {gameObject.name}: Looping right, new startPos: {startPos}");
+        }
+        else if (tempDistance < startPos - length)
+        {
             startPos -= length;
+            Debug.Log($"Parallax {gameObject.name}: Looping left, new startPos: {startPos}");
+        }
+            
+        // Debug log every 60 frames to avoid spam
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"Parallax on {gameObject.name}: CameraX={cameraXPosition:F2}, NewPos={newPosition.x:F2}, Effect={parallaxEffect}, StartPos={startPos:F2}");
+        }
+    }
+
+    // Method to set a specific camera (for local camera system)
+    public void SetLocalCamera(Camera localCamera)
+    {
+        cam = localCamera;
+    }
+
+    // Method to update parallax effect strength
+    public void SetParallaxEffect(float effect)
+    {
+        parallaxEffect = effect;
+    }
+
+    // Method to reset parallax position
+    public void ResetParallaxPosition()
+    {
+        startPos = transform.position.x;
     }
 
     /*private float startPos, length;

@@ -167,6 +167,8 @@ MonoBehaviour:
   playerCamera: {fileID: 2393369397229045679, guid: b27c7563242436747858abee4e0e8a84, type: 3}
   canShoot: 1
   timeBetweenShot: 0.5
+  syncedRotation:
+    m_InternalValue: 0
 --- !u!1 &7700257031573782369
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,6 +184,7 @@ GameObject:
   - component: {fileID: 1543025744338673571}
   - component: {fileID: 8106749200059199874}
   - component: {fileID: 7668493461087864581}
+  - component: {fileID: -2183194629211521758}
   - component: {fileID: -2187553403530368709}
   m_Layer: 6
   m_Name: Player
@@ -392,6 +395,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80d7c879794dfda4687da0e400131852, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-2183194629211521758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7700257031573782369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef0f14facf4d17b4da8fccb9c40056e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minRotation: -45
+  maxRotation: 45
+  bulletPrefab: {fileID: 0}
+  bulletTransform: {fileID: 0}
+  playerCamera: {fileID: 0}
+  canShoot: 1
+  timeBetweenShot: 0.5
+  syncedRotation:
+    m_InternalValue: 0
 --- !u!114 &-2187553403530368709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -406,4 +430,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Position:
     m_InternalValue: {x: 0, y: 0}
+  Velocity:
+    m_InternalValue: {x: 0, y: 0}
+  IsVisible:
+    m_InternalValue: 1
   moveSpeed: 5

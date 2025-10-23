@@ -19,7 +19,18 @@ public class PlayerController : NetworkBehaviour
 
     private void Initialize()
     {
-        playerCamera = Camera.main;
+        // Try to find the local camera with "Camera" tag first
+        GameObject cameraObj = GameObject.FindWithTag("Camera");
+        if (cameraObj != null)
+        {
+            playerCamera = cameraObj.GetComponent<Camera>();
+            Debug.Log($"PlayerController: Found local camera: {playerCamera.name}");
+        }
+        else
+        {
+            playerCamera = Camera.main;
+            Debug.LogWarning("PlayerController: No local camera found, using Camera.main");
+        }
         //transform.position = new Vector3(transform.position.x, -3f, transform.position.z);
         playerPos = transform.position;
     }
@@ -43,6 +54,21 @@ public class PlayerController : NetworkBehaviour
         transform.position = new Vector2(clampedPos, transform.position.y);
 
         /*if (!IsOwner || !Application.isFocused) return; // only move on current editor
+
+        // Ensure camera is available
+        if (playerCamera == null)
+        {
+            GameObject cameraObj = GameObject.FindWithTag("Camera");
+            if (cameraObj != null)
+            {
+                playerCamera = cameraObj.GetComponent<Camera>();
+                Debug.Log($"PlayerController: Found local camera in Update: {playerCamera.name}");
+            }
+            else
+            {
+                return; // Skip this frame if no camera available
+            }
+        }
 
         mInput.x = Input.mousePosition.x;
         mInput.y = Input.mousePosition.y;

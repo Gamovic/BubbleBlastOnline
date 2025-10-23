@@ -8,103 +8,135 @@ namespace Game
     public class Player : NetworkBehaviour
     {
         public NetworkVariable<Vector2> Position = new NetworkVariable<Vector2>();
+        public NetworkVariable<Vector2> Velocity = new NetworkVariable<Vector2>();
+        public NetworkVariable<bool> IsVisible = new NetworkVariable<bool>(true);
 
         public float moveSpeed = 5f;
         private Rigidbody2D rb;
+        private SpriteRenderer spriteRenderer;
 
-        // Start coroutine to listen for key inputs on the client
         public override void OnNetworkSpawn()
         {
             rb = GetComponent<Rigidbody2D>();
-            /*if (IsOwner)
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            
+            // Subscribe to network variable changes
+            Position.OnValueChanged += OnPositionChanged;
+            Velocity.OnValueChanged += OnVelocityChanged;
+            IsVisible.OnValueChanged += OnVisibilityChanged;
+            
+            // Set initial position
+            if (IsServer)
             {
-                StartCoroutine(MoveOnClient());
-            }*/
+                Position.Value = transform.position;
+            }
         }
 
-        /*IEnumerator MoveOnClient()
+        public override void OnNetworkDespawn()
         {
-            while (true)
+            // Unsubscribe from network variable changes
+            Position.OnValueChanged -= OnPositionChanged;
+            Velocity.OnValueChanged -= OnVelocityChanged;
+            IsVisible.OnValueChanged -= OnVisibilityChanged;
+            
+            base.OnNetworkDespawn();
+        }
+
+        private void OnPositionChanged(Vector2 previousValue, Vector2 newValue)
+        {
+            if (!IsOwner)
             {
-                yield return null;
+                transform.position = newValue;
             }
-        }*/
+        }
+
+        private void OnVelocityChanged(Vector2 previousValue, Vector2 newValue)
+        {
+            if (!IsOwner)
+            {
+                rb.velocity = newValue;
+            }
+        }
+
+        private void OnVisibilityChanged(bool previousValue, bool newValue)
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.enabled = newValue;
+            }
+        }
 
         public void Move(Vector2 moveDirection)
         {
-            if (NetworkManager.Singleton.IsServer)
+            if (IsOwner)
             {
-                // If the server, move based on input
-                Vector2 velocity = moveDirection * moveSpeed/* * Time.deltaTime*/;
-                rb.velocity = new Vector2(velocity.x, rb.velocity.y);
-                Position.Value = transform.position;
-
-                //Vector2 newPosition = Position.Value + moveDirection * moveSpeed * Time.deltaTime;
-                //Position.Value = newPosition;
-
-
-                // Log the server move
-                Debug.Log("Server move: " + Position.Value);
+                // Calculate new velocity
+                Vector2 newVelocity = new Vector2(moveDirection.x * moveSpeed, rb.velocity.y);
+                
+                // Apply movement locally for responsiveness
+                rb.velocity = newVelocity;
+                
+                // Update network variables
+                if (IsServer)
+                {
+                    Position.Value = transform.position;
+                    Velocity.Value = rb.velocity;
+                }
+                else
+                {
+                    // Send movement to server
+                    SubmitMovementServerRpc(moveDirection, transform.position);
+                }
             }
-            else
-            {
-                // If client, request the server to move
-                SubmitPositionRequestServerRpc(moveDirection);
-            }
-            //Debug.Log("Move method called on " + (NetworkManager.Singleton.IsServer ? "Server" : "Client"));
-            //if (NetworkManager.Singleton.IsServer)
-            //{
-                // If the server, move based on input
-                //Vector2 newPosition = Position.Value + moveDirection * moveSpeed * Time.deltaTime;
-                //Position.Value = newPosition;
-
-                /*// Server logic to move horizontally in 2D
-                var randomX = Random.Range(-3f, 3f);
-                var newPosition = new Vector3(randomX, 0f);
-                transform.position = newPosition;
-                Position.Value = newPosition;*/
-            //}
-            //else
-            //{
-                // If client, request the server to move
-                //SubmitPositionRequestServerRpc(moveDirection);
-            //}
         }
 
         [ServerRpc]
-        public void SubmitPositionRequestServerRpc(Vector2 moveDirection, ServerRpcParams rpcParams = default)
+        public void SubmitMovementServerRpc(Vector2 moveDirection, Vector2 currentPosition, ServerRpcParams rpcParams = default)
         {
-            // Server calculates new position based on input
-            Vector2 newPosition = Position.Value + moveDirection * moveSpeed;
-            Position.Value = newPosition;
-            //Vector2 velocity = moveDirection * moveSpeed/* * Time.deltaTime*/;
-            //rb.velocity = new Vector2(velocity.x, rb.velocity.y);
-            //Position.Value = transform.position;
-
-
-            // Server generates a new random position and updates it
-            //Position.Value = new Vector3(Random.Range(-3f, 3f), 0f);
-
-            Debug.Log("SubmitPositionRequestServerRpc called on Server");
-
+            // Server validates and applies movement
+            Vector2 newVelocity = new Vector2(moveDirection.x * moveSpeed, rb.velocity.y);
+            rb.velocity = newVelocity;
+            
+            // Update network variables
+            Position.Value = currentPosition;
+            Velocity.Value = rb.velocity;
         }
 
         void Update()
         {
-            // Update the local position based on the network variable
-            //transform.position = new Vector3(Position.Value.x, Position.Value.y, transform.position.z);
-            rb.position = Position.Value;
-
-            /*if (IsOwner)
+            if (IsOwner)
             {
+                // Handle input for owner
                 float horizontalInput = Input.GetAxisRaw("Horizontal");
                 Vector2 moveDirection = new Vector2(horizontalInput, 0f).normalized;
+                
+                if (moveDirection.magnitude > 0)
+                {
+                    Move(moveDirection);
+                }
+                
+                // Update position on server
+                if (IsServer)
+                {
+                    Position.Value = transform.position;
+                    Velocity.Value = rb.velocity;
+                }
+            }
+            else
+            {
+                // For non-owners, interpolate position for smooth movement
+                if (Vector2.Distance(transform.position, Position.Value) > 0.1f)
+                {
+                    transform.position = Vector2.Lerp(transform.position, Position.Value, Time.deltaTime * 10f);
+                }
+            }
+        }
 
-                // Call the Move method based on input
-                Move(moveDirection);
-            }*/
-            // Update the local position based on the network variable
-            //transform.position = Position.Value;
+        // Method to make player visible/invisible (for respawning, etc.)
+        [ServerRpc]
+        public void SetVisibilityServerRpc(bool visible)
+        {
+            IsVisible.Value = visible;
         }
     }
 }

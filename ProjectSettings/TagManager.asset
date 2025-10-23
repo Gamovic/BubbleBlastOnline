@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ball
   - Wall
+  - Bullet
+  - Camera
   layers:
   - Default
   - TransparentFX

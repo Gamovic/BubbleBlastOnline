@@ -22,11 +22,20 @@ public class NetworkManagerUI : MonoBehaviour
 
         hostBtn.onClick.AddListener(() =>
         {
+            var password = "room password";
+            var passwordBytes = System.Text.Encoding.ASCII.GetBytes(password);
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = passwordBytes;
+            Debug.Log($"Host: Setting connection data to '{password}' (bytes: {passwordBytes.Length})");
             NetworkManager.Singleton.StartHost();
         });
 
         clientBtn.onClick.AddListener(() =>
         {
+            var password = "room password";
+            var passwordBytes = System.Text.Encoding.ASCII.GetBytes(password);
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = passwordBytes;
+            Debug.Log($"Client: Setting connection data to '{password}' (bytes: {passwordBytes.Length})");
+            Debug.Log($"Client: NetworkConfig.ConnectionData before StartClient: {System.Text.Encoding.ASCII.GetString(NetworkManager.Singleton.NetworkConfig.ConnectionData)}");
             NetworkManager.Singleton.StartClient();
         });
 

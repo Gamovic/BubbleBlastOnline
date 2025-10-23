@@ -8,7 +8,7 @@ public class ConnectionChecker : MonoBehaviour
 {
     private NetworkManager m_NetworkManager;
 
-    private void Start()
+    private void Awake()
     {
         m_NetworkManager = GetComponentInParent<NetworkManager>();
         if (m_NetworkManager != null)
@@ -16,6 +16,11 @@ public class ConnectionChecker : MonoBehaviour
             m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnectCallback;
             m_NetworkManager.ConnectionApprovalCallback = ApprovalCheck;
             m_NetworkManager.OnClientConnectedCallback += OnClientConnectedCallBack;
+            Debug.Log("ConnectionChecker: Connection approval callback set in Awake");
+        }
+        else
+        {
+            Debug.LogError("ConnectionChecker: NetworkManager not found!");
         }
     }
 
@@ -26,20 +31,23 @@ public class ConnectionChecker : MonoBehaviour
 
     private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
+        Debug.Log($"Connection approval request received. Payload length: {request.Payload.Length}");
+        
         var clientPass = System.Text.Encoding.ASCII.GetString(request.Payload);
+        Debug.Log($"Client password: '{clientPass}'");
 
         if (clientPass == "room password")
         {
             response.CreatePlayerObject = true;
-            print("right pass!!!");
             response.Approved = true;
             response.Reason = "correct pass";
+            Debug.Log("Connection approved! Creating player object for client.");
         }
         else
         {
             response.Approved = false;
-            print("wrong pass!!!");
             response.Reason = "incorrect pass";
+            Debug.Log($"Connection rejected! Expected 'room password', got '{clientPass}'");
         }
     }
 
